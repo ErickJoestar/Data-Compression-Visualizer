@@ -1,0 +1,43 @@
+.hash-table{
+  --border-color: #b3aca7;
+  background-color: rgb(48, 43, 61);
+  width:var(--max-width);
+  margin:5rem auto;
+  border-radius: 3px;
+  padding: 2rem 3rem;
+  color: var(--text-color);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  align-content: flex-start;
+  box-shadow: 0px 3px 5px rgb(97, 97, 97);
+}
+
+.hash-table__element{
+  border-radius: 2px;
+  border: 1.8px solid var(--border-color);
+  padding: .5rem 0;
+  display: inline-block;
+  margin: .5rem;
+  width:5.8rem;
+  box-shadow: 0 1px 2px rgb(80, 80, 80);
+  transition: all .2s;
+}
+.hash-table__element:hover{
+  cursor: pointer;
+  transform: translateY(-1px);
+}
+.hash-table__key{
+  text-align: center;
+  font-size: 2.5rem;
+  color: rgb(219, 223, 231);
+  border-bottom: 1.8px solid var(--border-color);
+  padding-bottom: .5rem;
+}
+
+.hash-table__value{
+  color:#f5d67b;
+  font-size: 1.8rem;
+  text-align: center;
+}
