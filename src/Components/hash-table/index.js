@@ -8,7 +8,7 @@ const HashTable = ({ className = "", data = [], onElementHover, onElementClick }
       {data.map((el, i) => {
         return <div key={el.key + i} className="hash-table__element">
           <div className="hash-table__key">
-            <span>{el.key}</span>
+            <span>{el.key || "‎‎"}</span>
           </div>
           <div className="hash-table__value">
             <span>{el.value}</span>

@@ -1,0 +1,11 @@
+.textarea{
+  width:100%;
+  padding: 1rem 2rem;
+  background-color: #fff;
+  font-size: 2rem;
+  font-family: inherit;
+  resize: vertical;
+  outline: none !important;
+  min-height: 15rem;
+  max-height: 50rem;
+}
