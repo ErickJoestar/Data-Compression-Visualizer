@@ -1,0 +1,13 @@
+.tree_container{
+  padding: 0;
+}
+
+.tree_node{
+  -webkit-filter: drop-shadow( 3px 3px 2px rgba(252, 252, 252, 0.7));
+  filter: drop-shadow( 3px 3px 2px rgba(255, 255, 255, 0.7));
+}
+
+.tree_edge{
+  -webkit-filter: drop-shadow( 3px 3px 2px red);
+  filter: drop-shadow( 3px 3px 2px red);
+}

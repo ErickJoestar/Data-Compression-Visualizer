@@ -84,6 +84,13 @@ class TreeNode {
     }
     return this.deepFirstSearch(generatePath, []);
   }
+
+  getHeight() {
+    const heightFunction = (acc, node, height) => {
+      return Math.max(height, acc);
+    }
+    return this.deepFirstSearch(heightFunction, 0);
+  }
 }
 
 export default TreeNode;

@@ -11,7 +11,6 @@ const huffmanCode = (text) => {
     }
   })
 
-
   const hashTableArray = [];
   const priorityQueue = new PriorityQueue({ comparator: (a, b) => a.value - b.value });
 
@@ -23,17 +22,20 @@ const huffmanCode = (text) => {
   }
   hashTableArray.sort((a, b) => b.value - a.value);
 
+  let counter = 0;
   while (priorityQueue.length > 1) {
     const left = priorityQueue.dequeue();
     const right = priorityQueue.dequeue();
-    const node = new TreeNode('vertex', left.value + right.value)
+    const node = new TreeNode(`vertex-${counter++}`, left.value + right.value)
     node.setLeft(left).setRight(right);
     left.setParent(node);
     right.setParent(node);
     priorityQueue.queue(node);
   }
-
-  return { hashTable: hashTableArray, root: priorityQueue.peek() || new TreeNode("vertex", 0) };
+  if (priorityQueue.length > 0) {
+    return { hashTable: hashTableArray, root: priorityQueue.peek() };
+  } else {
+    return { hashTable: hashTableArray, root: new TreeNode("vertex", 0) }
+  }
 }
-
 export default huffmanCode;

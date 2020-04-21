@@ -1,0 +1,11 @@
+:root{
+  --border-color-white: #b3aca7;
+}
+.border-white{
+  border: 1.8px solid var(--border-color-white);
+}
+
+.fill-white{
+  fill: var(--border-color-white);
+  stroke: var(--border-color-white);
+}
