@@ -3,8 +3,19 @@
 }
 
 .tree_node{
-  -webkit-filter: drop-shadow( 3px 3px 2px rgba(252, 252, 252, 0.7));
-  filter: drop-shadow( 3px 3px 2px rgba(255, 255, 255, 0.7));
+  fill:#b3aca7;
+  z-index: 5;
+  /*#f5d67b*/
+}
+.tree_node.selected{
+  fill:#f5d67b;
+  z-index: 10;
+
+
+}
+
+.tree_node:hover{
+  cursor: pointer;
 }
 
 .tree_edge{

@@ -6,24 +6,18 @@ import '../../Common/containers.css'
 import '../../Common/colors.css';
 import './style.css'
 
-const NODE_RADIUS = 15;
-const NODE_MARGIN = 20;
+const NODE_RADIUS = 10;
+const NODE_MARGIN = 10;
 const WIDTH = 900;
 
 const BinaryTree = ({ treeNode }) => {
-  const [vertexArr, setVertexArr] = useState([]);
-  const [edges, setEdges] = useState([]);
-  const [nodesData, setNodesData] = useState({});
-  const [dimensions, setDimensions] = useState({
-    height: 0,
-    width: WIDTH,
-    treeHeight: 0,
-    treeWidth: 0,
-    paddingTopBottom: 50,
-    paddingLeftRight: 20,
-    nodeRadius: 32
+  const [state, setState] = useState({
+    dimensions: {
+      height: 0, width: WIDTH, paddingTopBottom: 50, paddingLeftRight: 20, nodeRadius: 32, treeHeight: 0, treeWidth: 0
+    }, edges: [], vertex: []
   });
   const ref = useRef(null);
+  console.log(treeNode);
 
   useEffect(() => {
     const nodes = {};
@@ -47,84 +41,159 @@ const BinaryTree = ({ treeNode }) => {
       return width;
     }
     getNodesData(treeNode, 0);
-    setNodesData(nodes);
-    const nodeHeight = treeNode.getHeight();
-    const nodeWidth = nodes[treeNode.key].width;
+
+    const treeHeight = treeNode.getHeight();
+    const treeWidth = nodes[treeNode.key].width;
     const nodeRadius = NODE_RADIUS;
-    setDimensions(d => (
-      {
-        ...d,
-        treeHeight: nodeHeight,
-        treeWidth: nodeWidth,
-        nodeRadius: nodeRadius,
-        height: (NODE_RADIUS + NODE_MARGIN) * nodeHeight * 2 + d.paddingTopBottom * 2
-      }));
+    /////// DIMENSIONS
+    const edges = [];
 
-  }, [treeNode])
-
-  useEffect(() => {
-    const { paddingLeftRight, paddingTopBottom, width, height, treeHeight } = dimensions;
-    const xScale = d3
-      .scaleLinear()
-      .domain([0, 1])
-      .range([paddingLeftRight, width - paddingLeftRight]);
-    const yScale = d3
-      .scaleLinear()
-      .domain([treeHeight, 0])
-      .range([height - paddingTopBottom, paddingTopBottom]);
-    const lineGenerator = d3.line();
-    /// Get value from 0 to 1 representing the x position
-    const edgesArr = [];
-    const vertex = { ...nodesData };
     const getAbsolutePos = (node, start, end, parentPos = []) => {
       if (node === undefined) return;
-      vertex[node.key].x = (start + end) / 2;
+      nodes[node.key].x = (start + end) / 2;
       const { left, right } = node;
       const hasLeft = left instanceof TreeNode;
       const hasRight = right instanceof TreeNode;
-      const { treeWidth } = dimensions;
-      const pos = [vertex[node.key].x, vertex[node.key].height];
+      const pos = [nodes[node.key].x, nodes[node.key].height];
 
       if (parentPos.length > 0) {
-        edgesArr.push([parentPos, pos])
+        edges.push({ from: parentPos, to: pos, key: node.key })
       }
       if (hasLeft && hasRight) {
-        getAbsolutePos(left, start, start + vertex[left.key].width / treeWidth, pos)
-        getAbsolutePos(right, start + vertex[left.key].width / treeWidth, end, pos)
+        getAbsolutePos(left, start, start + nodes[left.key].width / treeWidth, pos)
+        getAbsolutePos(right, start + nodes[left.key].width / treeWidth, end, pos)
       } else if (hasLeft) {
         getAbsolutePos(left, start, end, pos)
       } else if (hasRight) {
         getAbsolutePos(right, start, end, pos)
       }
     }
-    console.log(edgesArr);
 
-    getAbsolutePos(vertex[treeNode.key], 0, 1);
+    getAbsolutePos(nodes[treeNode.key], 0, 1);
     /// Maping the values with d3
 
-    const vertexArr = [];
-    for (const key in vertex) {
-      vertex[key].x = xScale(vertex[key].x);
-      vertex[key].y = yScale(vertex[key].height);
-      vertexArr.push(vertex[key]);
+    const vertex = [];
+    for (const key in nodes) {
+      vertex.push(nodes[key]);
     }
-    const edges = [];
-    for (const points of edgesArr) {
-      const from = [xScale(points[0][0]), yScale(points[0][1])];
-      const to = [xScale(points[1][0]), yScale(points[1][1])];
-      edges.push(lineGenerator([from, to]));
-    }
-    console.log(edges);
-    setEdges(edges);
-    setVertexArr(vertexArr);
 
-  }, [nodesData, dimensions, treeNode])
+    setState(s => {
+      const height = (NODE_RADIUS + NODE_MARGIN) * treeHeight * 2 + s.dimensions.paddingTopBottom * 2
+
+      const dimensions = {
+        ...s.dimensions,
+        treeHeight: treeHeight,
+        treeWidth: treeWidth,
+        nodeRadius: nodeRadius,
+        height: height
+      }
+      return { dimensions, edges, vertex }
+    });
+  }, [treeNode])
+
+
+  useEffect(() => {
+    const { dimensions, vertex, edges } = state;
+    const svgContainer = d3.select(ref.current);
+    const svgCircles = svgContainer.selectAll('circle');
+    const svgPaths = svgContainer.selectAll('path');
+    let edgesArr = [];
+
+    let path = [];
+    /// Scales 
+    let xScale = d3
+      .scaleLinear()
+      .domain([0, 1])
+      .range([dimensions.paddingLeftRight, dimensions.width - dimensions.paddingLeftRight]);
+    let yScale = d3
+      .scaleLinear()
+      .domain([dimensions.treeHeight, 0])
+      .range([dimensions.height - dimensions.paddingTopBottom, dimensions.paddingTopBottom]);
+
+    // Generaton the edges
+
+    /// Update the positions baes on the zoom
+    const updateElementsPosition = () => {
+      const lineGenerator = d3.line();
+
+      edgesArr = edges.map(edge => {
+        const from = [xScale(edge.from[0]), yScale(edge.from[1])];
+        const to = [xScale(edge.to[0]), yScale(edge.to[1])];
+        return ({ path: lineGenerator([from, to]), key: edge.key });
+      })
+
+      svgCircles
+        .data(vertex)
+        .attr('cx', v => xScale(v.x))
+        .attr('cy', v => yScale(v.height))
+        .attr('class', v => path.includes(v.key) ? 'tree_node selected' : 'tree_node')
+        .on('click', handleMouseClick)
+
+      svgPaths
+        .data(edgesArr)
+        .attr('d', e => e.path)
+        .attr('stroke', e => path.includes(e.key) ? '#f5d67b' : '#b3aca7')
+
+    }
+
+    /// Handling zoom 
+    const handleZoom = () => {
+      const zoomTransform = d3.event.transform;
+      console.log(d3.event);
+      xScale = d3
+        .scaleLinear()
+        .domain([0, 1])
+        .range([dimensions.paddingLeftRight, dimensions.width - dimensions.paddingLeftRight]);
+      yScale = d3
+        .scaleLinear()
+        .domain([dimensions.treeHeight, 0])
+        .range([dimensions.height - dimensions.paddingTopBottom, dimensions.paddingTopBottom]);
+
+      if (zoomTransform) {
+        xScale.domain(zoomTransform.rescaleX(xScale).domain());
+        yScale.domain(zoomTransform.rescaleY(yScale).domain());
+        ref.current.style.transform = `scale(${Math.min(1, zoomTransform.k)})`
+      }
+      updateElementsPosition();
+    }
+
+    svgContainer
+      .call(d3.zoom()
+        .scaleExtent([1, 50])
+        .translateExtent([[-100, -100], [dimensions.width, dimensions.height]])
+        .extent([[-100, -100], [dimensions.width, dimensions.height]])
+        .on("zoom", handleZoom));
+
+
+    /// Handling mouse interactions
+
+    function handleMouseClick(props) {
+      path = treeNode.getPath(props.key);
+      svgCircles
+        .data(vertex)
+        .transition()
+        .attr('class', v => path.includes(v.key) ? 'tree_node selected' : 'tree_node')
+      svgPaths
+        .data(edgesArr)
+        .attr('stroke', e => { console.log(e); return path.includes(e.key) ? '#f5d67b' : '#b3aca7' })
+    }
+
+
+
+
+
+    updateElementsPosition();
+  }, [ref, state, treeNode])
+
+
+
 
   return <div className="structure-container tree_container" style={{ width: WIDTH }}>
-    <svg width={dimensions.width} height={dimensions.height}>
-      <g ref={ref}>
-        {edges.map((e, i) => <path className='fill-white tree_edge' key={i} d={e} strokeWidth={2} />)}
-        {vertexArr.map((v, i) => <circle className='tree_node' key={i} cx={v.x} cy={v.y} fill={v.fill} r={NODE_RADIUS} />)}
+    <svg ref={ref} width={state.dimensions.width} height={state.dimensions.height} >
+      <g>
+        {console.log('RENDER')}
+        {state.edges.map((e, i) => <path className='fill-white tree_edge' key={i} strokeWidth={2} />)}
+        {state.vertex.map((v, i) => <circle className='tree_node' key={i} r={NODE_RADIUS} />)}
       </g>
     </svg>
   </div>

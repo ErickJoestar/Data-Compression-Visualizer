@@ -7,5 +7,4 @@
 
 .fill-white{
   fill: var(--border-color-white);
-  stroke: var(--border-color-white);
 }
